@@ -32,7 +32,7 @@ class CustomWebEnginePage(QWebEnginePage):
         self.browser_window = parent
 
         # Формируем User-Agent с названием браузера WaterWolf и операционной системой
-        user_agent = f"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:131.0) Gecko/20100101 Firefox/131.0"
+        user_agent = f"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0"
 
         # Устанавливаем кастомный User-Agent
         self.profile = QWebEngineProfile.defaultProfile()
@@ -152,8 +152,8 @@ class RoundedTabBar(QTabBar):
         return size
 
 class Browser(QMainWindow):
-    GITHUB_REPO = "FoxGalaxy2MishaKhodakov/WaterWolf"  # Замените на ваше имя пользователя и репозиторий
-    CURRENT_VERSION = "1.3.2"  # Версия текущего браузера
+    GITHUB_REPO = "foxgalaxy23g/WaterWolf"  # Замените на ваше имя пользователя и репозиторий
+    CURRENT_VERSION = "1.3.3"  # Версия текущего браузера
 
     def __init__(self):
         super().__init__()
