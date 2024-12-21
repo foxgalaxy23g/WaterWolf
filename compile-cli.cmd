@@ -7,7 +7,7 @@ cls
 
 color 3
 :: Создание дистрибутива приложения
-pyinstaller --noconfirm --onedir --windowed --icon "%~dp0src-low\icon.ico" --add-data "%~dp0src-low\icons;icons/" --add-data "%~dp0src-low\script.js;." --add-data "%~dp0src-low\password.txt;." --add-data "%~dp0src-low\icon.ico;." --add-data "%~dp0src-low\start_page.html;." --add-data "%~dp0src-low\styles.css;." --add-data "%~dp0src-low\background.jpg;." --add-data "%~dp0src-low\config.ini;."  "%~dp0src-low\browser.py"
+pyinstaller --noconfirm --onedir --windowed --icon "%~dp0src-low\icon.ico" --add-data "%~dp0src-low\icons;icons/" --add-data "%~dp0src-low\script.js;." --add-data "%~dp0src-low\password.txt;." --add-data "%~dp0src-low\icon.ico;." --add-data "%~dp0src-low\start_page.html;." --add-data "%~dp0src-low\styles.css;." --add-data "%~dp0src-low\background.jpg;." --add-data "%~dp0src-low\config.ini;." --add-data "%~dp0src-low\1.png;."  "%~dp0src-low\browser.py"
 
 :: Копирование файла update.bat и black-web.txt в папку browser
 xcopy "%~dp0src-low\update.bat" "%~dp0dist\browser\" /Y
@@ -24,7 +24,7 @@ cd ..
 powershell Compress-Archive -Path "browser" -DestinationPath "%~dp0src-installer\browser.zip"
 cls
 color 4
-pyinstaller --noconfirm --onefile --windowed --icon "%~dp0src-low\icon.ico" --add-data "%~dp0src-installer\background.png;." --add-data "%~dp0src-installer\browser.zip;."  "%~dp0src-installer\installer.py"
+pyinstaller --noconfirm --onefile --windowed --icon "%~dp0src-low\icon.ico" --add-data "%~dp0src-installer\background.png;." --add-data "%~dp0src-installer\browser.zip;." --add-data "%~dp0LICENSE;."  "%~dp0src-installer\installer.py"
 xcopy "%~dp0dist\dist\installer.exe" "%~dp0ready\" /Y
 cls
 color 5
