@@ -19,6 +19,8 @@ import ctypes
 #Параметры
 safe_mode = 0 #Безопасный режим
 anonymus = 0 #Режим инкогнито
+legacy_ui = 0 #Классический интерфейс
+legacy_error_pages = 0 #Классические ошибки
 
 def is_user_admin():
     try:
@@ -65,15 +67,107 @@ class CustomWebEnginePage(QWebEnginePage):
         # Убираем else здесь, чтобы страница не отображала ошибку при любом сбое
 
     def custom_error_page(self):
-        return """
-        <html>
-        <head><title>Ошибка загрузки</title></head>
-        <body>
-        <h1>Страница не найдена</h1>
-        <p>К сожалению, произошла ошибка при загрузке страницы.</p>
-        </body>
-        </html>
-        """
+        if legacy_error_pages == 0:
+            return """
+            <!DOCTYPE html>
+            <html lang="ru">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Ошибка загрузки</title>
+                <style>
+                    body {
+                        margin: 0;
+                        padding: 0;
+                        background-color: #ff0000;
+                        color: #ffffff;
+                        font-family: Arial, sans-serif;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: space-between;
+                        height: 100vh;
+                        overflow: hidden;
+                    }
+
+                    .error-container {
+                        position: absolute;
+                        top: 5%;
+                        left: 5%;
+                        display: flex;
+                        align-items: center;
+                    }
+
+                    .triangle {
+                        position: relative;
+                        width: 0;
+                        height: 0;
+                        border-left: 50px solid transparent;
+                        border-right: 50px solid transparent;
+                        border-bottom: 100px solid #ffffff;
+                        animation: pulse 1.5s infinite;
+                    }
+
+                    .exclamation {
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, 35%);
+                        font-size: 3.5rem;
+                        color: #ff0000;
+                        font-weight: bold;
+                    }
+
+                    .error-text {
+                        margin-left: 20px;
+                        font-size: 1.5rem;
+                        white-space: nowrap;
+                    }
+
+                    .footer {
+                        position: absolute;
+                        bottom: 10px;
+                        left: 10px;
+                        font-size: 0.9rem;
+                    }
+
+                    @keyframes pulse {
+                        0% {
+                            transform: scale(1);
+                        }
+                        50% {
+                            transform: scale(1.1);
+                        }
+                        100% {
+                            transform: scale(1);
+                        }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="error-container">
+                    <div class="triangle">
+                        <div class="exclamation">!</div>
+                    </div>
+                    <div class="error-text">
+                        <h1>Упс... Кажется у нас проблемки ._.</h1>
+                        <a>Мы не можем загрузить данную страницу, пожалуйста попробуйте зайти позже</a>
+                    </div>
+                </div>
+
+                <div class="footer">WaterWolf Protect System</div>
+            </body>
+            </html>
+            """
+        else:
+            return """
+            <html>
+            <head><title>Ошибка загрузки</title></head>
+            <body>
+            <h1>Страница не найдена</h1>
+            <p>К сожалению, произошла ошибка при загрузке страницы.</p>
+            </body>
+            </html>
+            """
 
     def save_history(self, url):
         if anonymus == 0:
@@ -118,15 +212,106 @@ class CustomWebEnginePage(QWebEnginePage):
         return False
 
     def custom_blocked_page(self):
-        return """
-        <html>
-        <head><title>Сайт заблокирован</title></head>
-        <body>
-        <h1>Сайт заблокирован</h1>
-        <p>Доступ к этому сайту был ограничен администратором.</p>
-        </body>
-        </html>
-        """
+        if legacy_error_pages == 0:
+            return """
+            <!DOCTYPE html>
+            <html lang="ru">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Ошибка загрузки</title>
+                <style>
+                    body {
+                        margin: 0;
+                        padding: 0;
+                        background-color: #ff0000;
+                        color: #ffffff;
+                        font-family: Arial, sans-serif;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: space-between;
+                        height: 100vh;
+                        overflow: hidden;
+                    }
+
+                    .error-container {
+                        position: absolute;
+                        top: 5%;
+                        left: 5%;
+                        display: flex;
+                        align-items: center;
+                    }
+
+                    .triangle {
+                        position: relative;
+                        width: 0;
+                        height: 0;
+                        border-left: 50px solid transparent;
+                        border-right: 50px solid transparent;
+                        border-bottom: 100px solid #ffffff;
+                        animation: pulse 1.5s infinite;
+                    }
+
+                    .exclamation {
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, 35%);
+                        font-size: 3.5rem;
+                        color: #ff0000;
+                        font-weight: bold;
+                    }
+
+                    .error-text {
+                        margin-left: 20px;
+                        font-size: 1.5rem;
+                        white-space: nowrap;
+                    }
+
+                    .footer {
+                        position: absolute;
+                        bottom: 10px;
+                        left: 10px;
+                        font-size: 0.9rem;
+                    }
+
+                    @keyframes pulse {
+                        0% {
+                            transform: scale(1);
+                        }
+                        50% {
+                            transform: scale(1.1);
+                        }
+                        100% {
+                            transform: scale(1);
+                        }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="error-container">
+                    <div class="triangle">
+                        <div class="exclamation">!</div>
+                    </div>
+                    <div class="error-text">
+                        <h1>Сайт заблокирован системным администратором!</h1>
+                    </div>
+                </div>
+
+                <div class="footer">WaterWolf Protect System</div>
+            </body>
+            </html>
+            """
+        else:
+            return """
+            <html>
+            <head><title>Сайт заблокирован</title></head>
+            <body>
+            <h1>Сайт заблокирован</h1>
+            <p>Доступ к этому сайту был ограничен администратором.</p>
+            </body>
+            </html>
+            """
 
 
 class RoundedTabBar(QTabBar):
@@ -153,7 +338,7 @@ class RoundedTabBar(QTabBar):
 
 class Browser(QMainWindow):
     GITHUB_REPO = "foxgalaxy23g/WaterWolf"  # Замените на ваше имя пользователя и репозиторий
-    CURRENT_VERSION = "1.3.3"  # Версия текущего браузера
+    CURRENT_VERSION = "1.3.4"  # Версия текущего браузера
 
     def __init__(self):
         super().__init__()
@@ -197,103 +382,180 @@ class Browser(QMainWindow):
 
 
     def create_custom_title_bar(self):
-        # Создаем кастомную панель заголовка
-        title_bar = QWidget()
-        title_bar.setObjectName("title_bar")
-        title_bar.setStyleSheet("""
-            #title_bar {
-                background-color: #2E2E2E;
-                color: white;
-                padding: 5px;
-            }
-            QPushButton {
-                background-color: #00000000;
-                border: none;
-                color: white;
-                padding: 5px;
-                margin: 2px;
-            }
-            QPushButton:hover {
-                background-color: #00000000;
-            }
-        """)
-        title_bar_layout = QHBoxLayout()
+        if legacy_ui == 0:
+            # Создаем кастомную панель заголовка
+            title_bar = QWidget()
+            title_bar.setObjectName("title_bar")
+            title_bar.setStyleSheet("""
+                #title_bar {
+                    background-color: #2E2E2E;
+                    color: white;
+                    padding: 5px;
+                }
+                QPushButton {
+                    background-color: #00000000;
+                    border: none;
+                    color: white;
+                    padding: 5px;
+                    margin: 2px;
+                }
+                QPushButton:hover {
+                    background-color: #00000000;
+                }
+            """)
+            title_bar_layout = QHBoxLayout()
 
-        # Путь к иконкам
-        icon_path = os.path.join(sys.path[0], '..', 'icons')
+            # Путь к иконкам
+            icon_path = os.path.join(sys.path[0], '..', 'icons')
 
-        # Кнопка "Назад" с изображением
-        back_btn = QPushButton()
-        back_btn.setIcon(QIcon(os.path.join(icon_path, 'back.png')))
-        back_btn.clicked.connect(self.navigate_back)
-        title_bar_layout.addWidget(back_btn)
+            # Кнопка "Назад" с изображением
+            back_btn = QPushButton()
+            back_btn.setIcon(QIcon(os.path.join(icon_path, 'back.png')))
+            back_btn.clicked.connect(self.navigate_back)
+            title_bar_layout.addWidget(back_btn)
 
-        # Кнопка "Вперед" с изображением
-        forward_btn = QPushButton()
-        forward_btn.setIcon(QIcon(os.path.join(icon_path, 'forward.png')))
-        forward_btn.clicked.connect(self.navigate_forward)
-        title_bar_layout.addWidget(forward_btn)
+            # Кнопка "Вперед" с изображением
+            forward_btn = QPushButton()
+            forward_btn.setIcon(QIcon(os.path.join(icon_path, 'forward.png')))
+            forward_btn.clicked.connect(self.navigate_forward)
+            title_bar_layout.addWidget(forward_btn)
 
-        # Кнопка "Обновить" с изображением
-        reload_btn = QPushButton()
-        reload_btn.setIcon(QIcon(os.path.join(icon_path, 'reload.png')))
-        reload_btn.clicked.connect(self.reload_page)
-        title_bar_layout.addWidget(reload_btn)
+            # Кнопка "Обновить" с изображением
+            reload_btn = QPushButton()
+            reload_btn.setIcon(QIcon(os.path.join(icon_path, 'reload.png')))
+            reload_btn.clicked.connect(self.reload_page)
+            title_bar_layout.addWidget(reload_btn)
 
-        # Кнопка "Домой" с изображением
-        home_btn = QPushButton()
-        home_btn.setIcon(QIcon(os.path.join(icon_path, 'home.png')))
-        home_btn.clicked.connect(self.navigate_home)
-        title_bar_layout.addWidget(home_btn)
+            # Кнопка "Домой" с изображением
+            home_btn = QPushButton()
+            home_btn.setIcon(QIcon(os.path.join(icon_path, 'home.png')))
+            home_btn.clicked.connect(self.navigate_home)
+            title_bar_layout.addWidget(home_btn)
 
-        # Прогресс-бар
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setVisible(False)  # Прячем его по умолчанию
-        title_bar_layout.addWidget(self.progress_bar)
+            # Прогресс-бар
+            self.progress_bar = QProgressBar()
+            self.progress_bar.setVisible(False)  # Прячем его по умолчанию
+            title_bar_layout.addWidget(self.progress_bar)
 
-        # Поле URL
-        self.url_bar = QLineEdit()
-        self.url_bar.returnPressed.connect(self.navigate_to_url)
-        title_bar_layout.addWidget(self.url_bar)
+            # Поле URL
+            self.url_bar = QLineEdit()
+            self.url_bar.returnPressed.connect(self.navigate_to_url)
+            title_bar_layout.addWidget(self.url_bar)
 
-        # Кнопки управления окном
-        minimize_btn = QPushButton()
-        minimize_btn.setIcon(QIcon(os.path.join(icon_path, 'minimize.png')))
-        minimize_btn.clicked.connect(self.showMinimized)
-        title_bar_layout.addWidget(minimize_btn)
+            # Кнопки управления окном
+            minimize_btn = QPushButton()
+            minimize_btn.setIcon(QIcon(os.path.join(icon_path, 'minimize.png')))
+            minimize_btn.clicked.connect(self.showMinimized)
+            title_bar_layout.addWidget(minimize_btn)
 
-        maximize_btn = QPushButton()
-        maximize_btn.setIcon(QIcon(os.path.join(icon_path, 'maximize.png')))
-        maximize_btn.clicked.connect(self.toggle_maximized)
-        title_bar_layout.addWidget(maximize_btn)
+            maximize_btn = QPushButton()
+            maximize_btn.setIcon(QIcon(os.path.join(icon_path, 'maximize.png')))
+            maximize_btn.clicked.connect(self.toggle_maximized)
+            title_bar_layout.addWidget(maximize_btn)
 
-        close_btn = QPushButton()
-        close_btn.setIcon(QIcon(os.path.join(icon_path, 'closer.png')))
-        close_btn.clicked.connect(self.close)
-        title_bar_layout.addWidget(close_btn)
+            close_btn = QPushButton()
+            close_btn.setIcon(QIcon(os.path.join(icon_path, 'closer.png')))
+            close_btn.clicked.connect(self.close)
+            title_bar_layout.addWidget(close_btn)
 
-        title_bar.setLayout(title_bar_layout)
+            title_bar.setLayout(title_bar_layout)
 
-        # Устанавливаем кастомную панель заголовка
-        self.setMenuWidget(title_bar)
+            # Устанавливаем кастомную панель заголовка
+            self.setMenuWidget(title_bar)
+        else:
+            #Classic Ui
+                    # Создаем кастомную панель заголовка
+            title_bar = QWidget()
+            title_bar.setObjectName("title_bar")
+            title_bar.setStyleSheet("""
+                #title_bar {
+                    background-color: #2E2E2E;
+                    color: white;
+                    padding: 5px;
+                }
+                QPushButton {
+                    background-color: #4A4A4A;
+                    border: none;
+                    color: white;
+                    padding: 5px;
+                    margin: 2px;
+                }
+                QPushButton:hover {
+                    background-color: #6A6A6A;
+                }
+            """)
+            title_bar_layout = QHBoxLayout()
+
+            # Кнопка "Назад"
+            back_btn = QPushButton("←")
+            back_btn.clicked.connect(self.navigate_back)
+            title_bar_layout.addWidget(back_btn)
+
+            # Кнопка "Вперед"
+            forward_btn = QPushButton("→")
+            forward_btn.clicked.connect(self.navigate_forward)
+            title_bar_layout.addWidget(forward_btn)
+
+            # Кнопка "Обновить"
+            reload_btn = QPushButton("↻")
+            reload_btn.clicked.connect(self.reload_page)
+            title_bar_layout.addWidget(reload_btn)
+
+            # Кнопка "Домой"
+            home_btn = QPushButton("🏠")
+            home_btn.clicked.connect(self.navigate_home)
+            title_bar_layout.addWidget(home_btn)
+
+            # Адресная строка
+            self.url_bar = QLineEdit()
+            self.url_bar.returnPressed.connect(self.navigate_to_url)
+            title_bar_layout.addWidget(self.url_bar)
+
+            # Кнопки управления окном
+            minimize_btn = QPushButton("–")
+            maximize_btn = QPushButton("[]")
+            close_btn = QPushButton("X")
+
+            minimize_btn.clicked.connect(self.showMinimized)
+            maximize_btn.clicked.connect(self.toggle_maximized)
+            close_btn.clicked.connect(self.close)
+
+            title_bar_layout.addWidget(minimize_btn)
+            title_bar_layout.addWidget(maximize_btn)
+            title_bar_layout.addWidget(close_btn)
+
+            title_bar.setLayout(title_bar_layout)
+
+            # Устанавливаем кастомную панель заголовка
+            self.setMenuWidget(title_bar)
+
+            # Подключаем обработчик событий для перетаскивания окна
+            title_bar.mousePressEvent = self.mouse_press_event
+            title_bar.mouseMoveEvent = self.mouse_move_event
+
+            icon_path = os.path.join(os.path.dirname(__file__), '../icon.ico')  # Путь к вашей иконке
+            self.setWindowIcon(QIcon(icon_path))
 
     def on_load_started(self):
-        # Скрываем строку URL и показываем прогресс-бар
-        self.url_bar.setVisible(False)
-        self.progress_bar.setVisible(True)
+        if legacy_ui == 0:
+            # Скрываем строку URL и показываем прогресс-бар
+            self.url_bar.setVisible(False)
+            self.progress_bar.setVisible(True)
 
-        # Устанавливаем случайный цвет прогресс-бара
-        random_color = QColor(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
-        self.progress_bar.setStyleSheet(f"QProgressBar::chunk {{ background-color: {random_color.name()}; }}")
+            # Устанавливаем случайный цвет прогресс-бара
+            random_color = QColor(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+            self.progress_bar.setStyleSheet(f"QProgressBar::chunk {{ background-color: {random_color.name()}; }}")
 
     def on_load_progress(self, progress):
-        # Обновляем прогресс-бар
-        self.progress_bar.setValue(progress)
+        if legacy_ui == 0:
+            # Обновляем прогресс-бар
+            self.progress_bar.setValue(progress)
 
     def on_load_finished(self, success):
-        # Когда загрузка завершена, прячем прогресс-бар и показываем строку URL
-        self.progress_bar.setVisible(False)
-        self.url_bar.setVisible(True)
+        if legacy_ui == 0:
+            # Когда загрузка завершена, прячем прогресс-бар и показываем строку URL
+            self.progress_bar.setVisible(False)
+            self.url_bar.setVisible(True)
 
     def mouse_press_event(self, event):
         if event.button() == Qt.LeftButton:
@@ -343,15 +605,107 @@ class Browser(QMainWindow):
             current_browser.setHtml(self.custom_error_page())
 
     def custom_error_page(self):
-        return """
-        <html>
-        <head><title>Ошибка загрузки</title></head>
-        <body>
-        <h1>Страница не найдена</h1>
-        <p>К сожалению, произошла ошибка при загрузке страницы.</p>
-        </body>
-        </html>
-        """
+        if legacy_error_pages == 0:
+            return """
+            <!DOCTYPE html>
+            <html lang="ru">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Ошибка загрузки</title>
+                <style>
+                    body {
+                        margin: 0;
+                        padding: 0;
+                        background-color: #ff0000;
+                        color: #ffffff;
+                        font-family: Arial, sans-serif;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: space-between;
+                        height: 100vh;
+                        overflow: hidden;
+                    }
+
+                    .error-container {
+                        position: absolute;
+                        top: 5%;
+                        left: 5%;
+                        display: flex;
+                        align-items: center;
+                    }
+
+                    .triangle {
+                        position: relative;
+                        width: 0;
+                        height: 0;
+                        border-left: 50px solid transparent;
+                        border-right: 50px solid transparent;
+                        border-bottom: 100px solid #ffffff;
+                        animation: pulse 1.5s infinite;
+                    }
+
+                    .exclamation {
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, 35%);
+                        font-size: 3.5rem;
+                        color: #ff0000;
+                        font-weight: bold;
+                    }
+
+                    .error-text {
+                        margin-left: 20px;
+                        font-size: 1.5rem;
+                        white-space: nowrap;
+                    }
+
+                    .footer {
+                        position: absolute;
+                        bottom: 10px;
+                        left: 10px;
+                        font-size: 0.9rem;
+                    }
+
+                    @keyframes pulse {
+                        0% {
+                            transform: scale(1);
+                        }
+                        50% {
+                            transform: scale(1.1);
+                        }
+                        100% {
+                            transform: scale(1);
+                        }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="error-container">
+                    <div class="triangle">
+                        <div class="exclamation">!</div>
+                    </div>
+                    <div class="error-text">
+                        <h1>Страница не найдена!</h1>
+                        <a>Страница или сайт не работает либо его не сущесвует</a>
+                    </div>
+                </div>
+
+                <div class="footer">WaterWolf Protect System</div>
+            </body>
+            </html>
+            """
+        else:
+            return """
+            <html>
+            <head><title>Ошибка загрузки</title></head>
+            <body>
+            <h1>Страница не найдена</h1>
+            <p>К сожалению, произошла ошибка при загрузке страницы.</p>
+            </body>
+            </html>
+            """
 
     def add_new_tab_widget(self, webview, label="New Tab"):
         i = self.tabs.addTab(webview, label)
@@ -548,6 +902,15 @@ class Browser(QMainWindow):
             # Очистить файл истории
             with open(history_path, 'w') as f:
                 f.write('')
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.drag_start_position = event.globalPos() - self.frameGeometry().topLeft()
+            event.accept()
+
+    def mouseMoveEvent(self, event):
+        if event.buttons() == Qt.LeftButton:
+            self.move(event.globalPos() - self.drag_start_position)
+            event.accept()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
