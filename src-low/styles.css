@@ -10,6 +10,7 @@ body {
     background-size: cover;
     backdrop-filter: blur(5px);
     transition: background-image 0.5s ease-in-out;
+    overflow: hidden;
 }
 
 h1 {
@@ -22,7 +23,6 @@ h1 {
     text-align: center;
     margin-bottom: 30px;
 }
-
 input {
     width: 300px;
     padding: 10px;
@@ -31,12 +31,28 @@ input {
     border-radius: 15px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     background-color: Snow;
-    border: none;
+    border: 2px solid transparent; /* Изначальная прозрачная граница */
+    outline: none; /* Убираем стандартное обрамление браузера */
     transition: background-color 1s ease-in-out, border-radius 1s ease-in-out;
 }
 
-input:hover {
-    border-radius: 10px;
+input:focus {
+    animation: rainbow-border 2s forwards; /* Анимация радужной обводки */
+}
+
+@keyframes rainbow-border {
+    0% {
+        border-color: rgba(255, 58, 58, 0.123);
+    }
+    33% {
+        border-color: rgba(255, 255, 67, 0.322);
+    }
+    66% {
+        border-color: #4eff41aa
+    }
+    100% {
+        border-color: #00ffea
+    }
 }
 
 .icon-links {
@@ -81,4 +97,40 @@ a.copyright {
     bottom: 12px;
     color: rgba(255, 255, 255, 0.166);
     text-decoration: none;
+}
+
+.snowflake {
+    position: fixed;
+    top: -10px; /* Начало падения за границей экрана */
+    color: white;
+    font-size: 12px;
+    pointer-events: none;
+    user-select: none;
+    opacity: 0.8;
+    animation: fall linear infinite, sway ease-in-out infinite;
+    z-index: 1000; /* Слой выше контента */
+}
+
+.snowflake {
+    position: absolute;
+    top: -10px;
+    font-size: 10px;
+    color: white;
+    pointer-events: none;
+    animation: fall linear infinite;
+}
+
+@keyframes fall {
+    0% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh);
+        opacity: 0;
+    }
+}
+.img {
+    width: 60px;
+    height: 100px;
 }
