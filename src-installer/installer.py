@@ -1,7 +1,7 @@
 import os
 import zipfile
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, scrolledtext
 from pathlib import Path
 import sys
 import winshell
@@ -14,14 +14,15 @@ zip_app = "browser.zip"  # Название ZIP-файла с программо
 app_name = "WaterWolf"  # Название программы
 
 # Определяем директорию, на одну ступень ниже текущего файла
-base_dir = os.path.join(os.path.dirname(__file__))
+base_dir = os.path.dirname(__file__)
+license_path = os.path.join(base_dir, "LICENSE")
 
 # Пути к файлам в поддиректории "resources"
 zip_app_path = os.path.join(base_dir, zip_app)
 background_image_path = os.path.join(base_dir, "background.png")
 
 # Пути для установки и ярлыков
-install_path = Path(rf"C:\Program Files (x86)\{app_name}")
+install_path = Path(rf"C:\\Program Files (x86)\\{app_name}")
 desktop_path = winshell.desktop()
 start_menu_path = winshell.start_menu()
 
@@ -105,6 +106,40 @@ def remove_shortcuts():
     if os.path.exists(start_menu_shortcut):
         os.remove(start_menu_shortcut)
 
+# Окно с лицензионным соглашением
+def show_license_agreement():
+    def on_accept_change():
+        btn_continue.config(state="normal" if accept_var.get() else "disabled")
+
+    def on_continue():
+        license_window.destroy()
+        init_ui()
+
+    if not os.path.exists(license_path):
+        messagebox.showerror("Ошибка", f"Не найден файл лицензионного соглашения: {license_path}")
+        sys.exit()
+
+    with open(license_path, "r", encoding="utf-8") as file:
+        license_text = file.read()
+
+    license_window = tk.Tk()
+    license_window.title("Лицензионное соглашение")
+    license_window.geometry("500x400")
+
+    text_area = scrolledtext.ScrolledText(license_window, wrap=tk.WORD, height=15, width=60)
+    text_area.insert(tk.END, license_text)
+    text_area.configure(state="disabled")
+    text_area.pack(pady=10)
+
+    accept_var = tk.BooleanVar()
+    chk_accept = tk.Checkbutton(license_window, text="Я принимаю условия лицензионного соглашения", variable=accept_var, command=on_accept_change)
+    chk_accept.pack(pady=5)
+
+    btn_continue = tk.Button(license_window, text="Продолжить", state="disabled", command=on_continue)
+    btn_continue.pack(pady=10)
+
+    license_window.mainloop()
+
 # Инициализация интерфейса
 def init_ui():
     root = tk.Tk()
@@ -112,7 +147,6 @@ def init_ui():
     root.geometry("300x200")
     root.resizable(False, False)  # Отключаем изменение размеров окна
 
-    # Загружаем фон (обои)
     background_image = tk.PhotoImage(file=background_image_path)
     background_label = tk.Label(root, image=background_image)
     background_label.place(relwidth=1, relheight=1)
@@ -125,7 +159,7 @@ def init_ui():
         # Если приложение установлено, показываем кнопки "Обновление" и "Удаление"
         btn_update = tk.Button(button_frame, text="Обновление", command=update_app)
         btn_update.pack(pady=10)
-        
+
         btn_uninstall = tk.Button(button_frame, text="Удаление", command=uninstall_app)
         btn_uninstall.pack(pady=10)
     else:
@@ -136,4 +170,4 @@ def init_ui():
     root.mainloop()
 
 if __name__ == "__main__":
-    init_ui()
+    show_license_agreement()
