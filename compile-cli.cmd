@@ -7,7 +7,7 @@ cls
 
 color 3
 :: Создание дистрибутива приложения
-pyinstaller --noconfirm --onedir --windowed --icon "%~dp0src-low\icon.ico" --add-data "%~dp0src-low\icons;icons/" --add-data "%~dp0src-low\script.js;." --add-data "%~dp0src-low\password.txt;." --add-data "%~dp0src-low\icon.ico;." --add-data "%~dp0src-low\start_page.html;." --add-data "%~dp0src-low\styles.css;." --add-data "%~dp0src-low\background.jpg;." --add-data "%~dp0src-low\config.ini;." --add-data "%~dp0src-low\1.png;."  "%~dp0src-low\browser.py"
+pyinstaller --noconfirm --onedir --windowed --icon "%~dp0src-low\icon.ico" --add-data "%~dp0src-low\icons;icons/" --add-data "%~dp0src-low\waterwolf-launcher;waterwolf-launcher/" --add-data "%~dp0src-low\script.js;." --add-data "%~dp0src-low\password.txt;." --add-data "%~dp0src-low\icon.ico;." --add-data "%~dp0src-low\start_page.html;." --add-data "%~dp0src-low\styles.css;." --add-data "%~dp0src-low\background.jpg;." --add-data "%~dp0src-low\config.ini;." --add-data "%~dp0src-low\1.png;."  "%~dp0src-low\browser.py"
 
 :: Копирование файла update.bat и black-web.txt в папку browser
 xcopy "%~dp0src-low\update.bat" "%~dp0dist\browser\" /Y
