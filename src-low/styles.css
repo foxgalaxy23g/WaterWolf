@@ -37,7 +37,7 @@ input {
 }
 
 input:focus {
-    animation: rainbow-border 2s forwards; /* Анимация радужной обводки */
+    animation: rainbow-border 2s infinite; /* Анимация радужной обводки с бесконечным повторением */
 }
 
 @keyframes rainbow-border {
@@ -48,12 +48,16 @@ input:focus {
         border-color: rgba(255, 255, 67, 0.322);
     }
     66% {
-        border-color: #4eff41aa
+        border-color: #4eff41aa;
     }
-    100% {
-        border-color: #00ffea
+    88% {
+        border-color: #00ffea;
+    }
+	100% {
+        border-color: rgba(255, 58, 58, 0.123);
     }
 }
+
 
 .icon-links {
     display: flex;

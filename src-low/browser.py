@@ -1,5 +1,8 @@
 import sys
 import os
+import threading
+import http.server
+import socketserver
 import configparser
 import requests
 import datetime
@@ -18,10 +21,26 @@ import ctypes
 
 #Параметры
 safe_mode = 0 #Безопасный режим
+dark_mode = 1 #Тёмная тема
 anonymus = 0 #Режим инкогнито
 legacy_ui = 0 #Классический интерфейс
 legacy_error_pages = 0 #Классические ошибки
+launcher_ww = 0 #лаунчер с веб приложениями
+PORT = 8000
+DIRECTORY = os.path.join(sys.path[0], '..', "waterwolf-launcher")  # Путь к папке с HTML
 
+class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
+    if launcher_ww == 1:
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, directory=DIRECTORY, **kwargs)
+        
+def start_server():
+    """Функция для запуска сервера."""
+    if launcher_ww == 1:
+        with socketserver.TCPServer(("", PORT), CustomHTTPRequestHandler) as httpd:
+            print(f"Сервер запущен на http://localhost:{PORT}")
+            httpd.serve_forever()
+    
 def is_user_admin():
     try:
         return ctypes.windll.shell32.IsUserAnAdmin()
@@ -58,106 +77,198 @@ class CustomWebEnginePage(QWebEnginePage):
     def handle_load_finished(self, success):
         if success:  # Если страница успешно загрузилась
             current_url = self.url().toString()
-            self.save_history(current_url)
-            if safe_mode == 1:
-                if self.is_site_blocked(current_url):
-                    self.setHtml(self.custom_blocked_page())
-                else:
-                    self.save_history(current_url)
-        # Убираем else здесь, чтобы страница не отображала ошибку при любом сбое
+            if safe_mode == 1 and self.is_site_blocked(current_url):
+                # Отображаем страницу блокировки, но убираем циклические перезагрузки
+                self.setHtml(self.custom_blocked_page())
+                return  # Прерываем дальнейшие действия
+            else:
+                self.save_history(current_url)
+
 
     def custom_error_page(self):
         if legacy_error_pages == 0:
-            return """
-            <!DOCTYPE html>
-            <html lang="ru">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Ошибка загрузки</title>
-                <style>
-                    body {
-                        margin: 0;
-                        padding: 0;
-                        background-color: #ff0000;
-                        color: #ffffff;
-                        font-family: Arial, sans-serif;
-                        display: flex;
-                        flex-direction: column;
-                        justify-content: space-between;
-                        height: 100vh;
-                        overflow: hidden;
-                    }
-
-                    .error-container {
-                        position: absolute;
-                        top: 5%;
-                        left: 5%;
-                        display: flex;
-                        align-items: center;
-                    }
-
-                    .triangle {
-                        position: relative;
-                        width: 0;
-                        height: 0;
-                        border-left: 50px solid transparent;
-                        border-right: 50px solid transparent;
-                        border-bottom: 100px solid #ffffff;
-                        animation: pulse 1.5s infinite;
-                    }
-
-                    .exclamation {
-                        position: absolute;
-                        top: 50%;
-                        left: 50%;
-                        transform: translate(-50%, 35%);
-                        font-size: 3.5rem;
-                        color: #ff0000;
-                        font-weight: bold;
-                    }
-
-                    .error-text {
-                        margin-left: 20px;
-                        font-size: 1.5rem;
-                        white-space: nowrap;
-                    }
-
-                    .footer {
-                        position: absolute;
-                        bottom: 10px;
-                        left: 10px;
-                        font-size: 0.9rem;
-                    }
-
-                    @keyframes pulse {
-                        0% {
-                            transform: scale(1);
+            if dark_mode == 1:
+                return """
+                <!DOCTYPE html>
+                <html lang="ru">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Ошибка загрузки</title>
+                    <style>
+                        body {
+                            margin: 0;
+                            padding: 0;
+                            background-color: #1C1C1C;
+                            color: #ffffff;
+                            font-family: Arial, sans-serif;
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: space-between;
+                            height: 100vh;
+                            overflow: hidden;
                         }
-                        50% {
-                            transform: scale(1.1);
+
+                        .error-container {
+                            position: absolute;
+                            top: 5%;
+                            left: 5%;
+                            display: flex;
+                            align-items: center;
                         }
-                        100% {
-                            transform: scale(1);
+
+                        .triangle {
+                            position: relative;
+                            width: 0;
+                            height: 0;
+                            border-left: 50px solid transparent;
+                            border-right: 50px solid transparent;
+                            border-bottom: 100px solid #ffffff;
+                            animation: pulse 1.5s infinite;
                         }
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="error-container">
-                    <div class="triangle">
-                        <div class="exclamation">!</div>
+
+                        .exclamation {
+                            position: absolute;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, 35%);
+                            font-size: 3.5rem;
+                            color: #1C1C1C;
+                            font-weight: bold;
+                        }
+
+                        .error-text {
+                            margin-left: 20px;
+                            font-size: 1.5rem;
+                            white-space: nowrap;
+                        }
+
+                        .footer {
+                            position: absolute;
+                            bottom: 10px;
+                            left: 10px;
+                            font-size: 0.9rem;
+                        }
+
+                        @keyframes pulse {
+                            0% {
+                                transform: scale(1);
+                            }
+                            50% {
+                                transform: scale(1.1);
+                            }
+                            100% {
+                                transform: scale(1);
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="error-container">
+                        <div class="triangle">
+                            <div class="exclamation">!</div>
+                        </div>
+                        <div class="error-text">
+                            <h1>Упс... Кажется у нас проблемки ._.</h1>
+                            <a>Мы не можем загрузить данную страницу, пожалуйста попробуйте зайти позже</a>
+                        </div>
                     </div>
-                    <div class="error-text">
-                        <h1>Упс... Кажется у нас проблемки ._.</h1>
-                        <a>Мы не можем загрузить данную страницу, пожалуйста попробуйте зайти позже</a>
-                    </div>
-                </div>
 
-                <div class="footer">WaterWolf Protect System</div>
-            </body>
-            </html>
-            """
+                    <div class="footer">WaterWolf Protect System</div>
+                </body>
+                </html>
+                """
+            else:
+                return """
+                <!DOCTYPE html>
+                <html lang="ru">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Ошибка загрузки</title>
+                    <style>
+                        body {
+                            margin: 0;
+                            padding: 0;
+                            background-color: #ffffff;
+                            color: #1C1C1C;
+                            font-family: Arial, sans-serif;
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: space-between;
+                            height: 100vh;
+                            overflow: hidden;
+                        }
+
+                        .error-container {
+                            position: absolute;
+                            top: 5%;
+                            left: 5%;
+                            display: flex;
+                            align-items: center;
+                        }
+
+                        .triangle {
+                            position: relative;
+                            width: 0;
+                            height: 0;
+                            border-left: 50px solid transparent;
+                            border-right: 50px solid transparent;
+                            border-bottom: 100px solid #1C1C1C;
+                            animation: pulse 1.5s infinite;
+                        }
+
+                        .exclamation {
+                            position: absolute;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, 35%);
+                            font-size: 3.5rem;
+                            color: #ffffff;
+                            font-weight: bold;
+                        }
+
+                        .error-text {
+                            margin-left: 20px;
+                            font-size: 1.5rem;
+                            white-space: nowrap;
+                        }
+
+                        .footer {
+                            position: absolute;
+                            bottom: 10px;
+                            left: 10px;
+                            font-size: 0.9rem;
+                        }
+
+                        @keyframes pulse {
+                            0% {
+                                transform: scale(1);
+                            }
+                            50% {
+                                transform: scale(1.1);
+                            }
+                            100% {
+                                transform: scale(1);
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="error-container">
+                        <div class="triangle">
+                            <div class="exclamation">!</div>
+                        </div>
+                        <div class="error-text">
+                            <h1>Упс... Кажется у нас проблемки ._.</h1>
+                            <a>Мы не можем загрузить данную страницу, пожалуйста попробуйте зайти позже</a>
+                        </div>
+                    </div>
+
+                    <div class="footer">WaterWolf Protect System</div>
+                </body>
+                </html>
+                """
         else:
             return """
             <html>
@@ -181,16 +292,6 @@ class CustomWebEnginePage(QWebEnginePage):
         # Чтение черного списка сайтов
         blacklist_path = os.path.join(sys.path[0], '..', '..', 'black-web.txt')
 
-        # Ключевые слова для блокировки (казино, ставки, торренты, порно и т.д.)
-        blocked_keywords = [
-            "casino", "bet", "torrent", "lottery", "hack", "malware", "phish",
-            "porn", "xxx", "adult", "sex", "erotic", "nude", "cams"
-        ]
-
-        # Блокируемые доменные зоны
-        blocked_domains = [".ru", ".bet", ".casino", ".torrent", ".lottery", ".poker", 
-                           ".xxx", ".adult", ".sex", ".porn", ".cam"]
-
         if os.path.exists(blacklist_path):
             with open(blacklist_path, 'r') as f:
                 blocked_sites = f.read().splitlines()
@@ -199,109 +300,190 @@ class CustomWebEnginePage(QWebEnginePage):
                     if blocked_site in url:
                         return True
 
-        # Проверка по ключевым словам
-        for keyword in blocked_keywords:
-            if keyword in url:
-                return True
-
-        # Проверка по доменным зонам
-        for domain in blocked_domains:
-            if domain in url:
-                return True
-
         return False
 
     def custom_blocked_page(self):
         if legacy_error_pages == 0:
-            return """
-            <!DOCTYPE html>
-            <html lang="ru">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Ошибка загрузки</title>
-                <style>
-                    body {
-                        margin: 0;
-                        padding: 0;
-                        background-color: #ff0000;
-                        color: #ffffff;
-                        font-family: Arial, sans-serif;
-                        display: flex;
-                        flex-direction: column;
-                        justify-content: space-between;
-                        height: 100vh;
-                        overflow: hidden;
-                    }
-
-                    .error-container {
-                        position: absolute;
-                        top: 5%;
-                        left: 5%;
-                        display: flex;
-                        align-items: center;
-                    }
-
-                    .triangle {
-                        position: relative;
-                        width: 0;
-                        height: 0;
-                        border-left: 50px solid transparent;
-                        border-right: 50px solid transparent;
-                        border-bottom: 100px solid #ffffff;
-                        animation: pulse 1.5s infinite;
-                    }
-
-                    .exclamation {
-                        position: absolute;
-                        top: 50%;
-                        left: 50%;
-                        transform: translate(-50%, 35%);
-                        font-size: 3.5rem;
-                        color: #ff0000;
-                        font-weight: bold;
-                    }
-
-                    .error-text {
-                        margin-left: 20px;
-                        font-size: 1.5rem;
-                        white-space: nowrap;
-                    }
-
-                    .footer {
-                        position: absolute;
-                        bottom: 10px;
-                        left: 10px;
-                        font-size: 0.9rem;
-                    }
-
-                    @keyframes pulse {
-                        0% {
-                            transform: scale(1);
+            if dark_mode == 1:
+                return """
+                <!DOCTYPE html>
+                <html lang="ru">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Ошибка загрузки</title>
+                    <style>
+                        body {
+                            margin: 0;
+                            padding: 0;
+                            background-color: #1C1C1C;
+                            color: #ffffff;
+                            font-family: Arial, sans-serif;
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: space-between;
+                            height: 100vh;
+                            overflow: hidden;
                         }
-                        50% {
-                            transform: scale(1.1);
+
+                        .error-container {
+                            position: absolute;
+                            top: 5%;
+                            left: 5%;
+                            display: flex;
+                            align-items: center;
                         }
-                        100% {
-                            transform: scale(1);
+
+                        .triangle {
+                            position: relative;
+                            width: 0;
+                            height: 0;
+                            border-left: 50px solid transparent;
+                            border-right: 50px solid transparent;
+                            border-bottom: 100px solid #ffffff;
+                            animation: pulse 1.5s infinite;
                         }
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="error-container">
-                    <div class="triangle">
-                        <div class="exclamation">!</div>
+
+                        .exclamation {
+                            position: absolute;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, 35%);
+                            font-size: 3.5rem;
+                            color: #ff0000;
+                            font-weight: bold;
+                        }
+
+                        .error-text {
+                            margin-left: 20px;
+                            font-size: 1.5rem;
+                            white-space: nowrap;
+                        }
+
+                        .footer {
+                            position: absolute;
+                            bottom: 10px;
+                            left: 10px;
+                            font-size: 0.9rem;
+                        }
+
+                        @keyframes pulse {
+                            0% {
+                                transform: scale(1);
+                            }
+                            50% {
+                                transform: scale(1.1);
+                            }
+                            100% {
+                                transform: scale(1);
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="error-container">
+                        <div class="triangle">
+                            <div class="exclamation">!</div>
+                        </div>
+                        <div class="error-text">
+                            <h1>Сайт заблокирован системным администратором!</h1>
+                        </div>
                     </div>
-                    <div class="error-text">
-                        <h1>Сайт заблокирован системным администратором!</h1>
-                    </div>
-                </div>
 
-                <div class="footer">WaterWolf Protect System</div>
-            </body>
-            </html>
-            """
+                    <div class="footer">WaterWolf Protect System</div>
+                </body>
+                </html>
+                """
+            else:
+                return """
+                <!DOCTYPE html>
+                <html lang="ru">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Ошибка загрузки</title>
+                    <style>
+                        body {
+                            margin: 0;
+                            padding: 0;
+                            background-color: #ffffff;
+                            color: #1C1C1C;
+                            font-family: Arial, sans-serif;
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: space-between;
+                            height: 100vh;
+                            overflow: hidden;
+                        }
+
+                        .error-container {
+                            position: absolute;
+                            top: 5%;
+                            left: 5%;
+                            display: flex;
+                            align-items: center;
+                        }
+
+                        .triangle {
+                            position: relative;
+                            width: 0;
+                            height: 0;
+                            border-left: 50px solid transparent;
+                            border-right: 50px solid transparent;
+                            border-bottom: 100px solid #1C1C1C;
+                            animation: pulse 1.5s infinite;
+                        }
+
+                        .exclamation {
+                            position: absolute;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, 35%);
+                            font-size: 3.5rem;
+                            color: #ffffff;
+                            font-weight: bold;
+                        }
+
+                        .error-text {
+                            margin-left: 20px;
+                            font-size: 1.5rem;
+                            white-space: nowrap;
+                        }
+
+                        .footer {
+                            position: absolute;
+                            bottom: 10px;
+                            left: 10px;
+                            font-size: 0.9rem;
+                        }
+
+                        @keyframes pulse {
+                            0% {
+                                transform: scale(1);
+                            }
+                            50% {
+                                transform: scale(1.1);
+                            }
+                            100% {
+                                transform: scale(1);
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="error-container">
+                        <div class="triangle">
+                            <div class="exclamation">!</div>
+                        </div>
+                        <div class="error-text">
+                            <h1>Сайт заблокирован системным администратором!</h1>
+                        </div>
+                    </div>
+
+                    <div class="footer">WaterWolf Protect System</div>
+                </body>
+                </html>
+                """
         else:
             return """
             <html>
@@ -338,7 +520,7 @@ class RoundedTabBar(QTabBar):
 
 class Browser(QMainWindow):
     GITHUB_REPO = "foxgalaxy23g/WaterWolf"  # Замените на ваше имя пользователя и репозиторий
-    CURRENT_VERSION = "1.3.4"  # Версия текущего браузера
+    CURRENT_VERSION = "1.3.5"  # Версия текущего браузера
 
     def __init__(self):
         super().__init__()
@@ -386,27 +568,49 @@ class Browser(QMainWindow):
             # Создаем кастомную панель заголовка
             title_bar = QWidget()
             title_bar.setObjectName("title_bar")
-            title_bar.setStyleSheet("""
-                #title_bar {
-                    background-color: #2E2E2E;
-                    color: white;
-                    padding: 5px;
-                }
-                QPushButton {
-                    background-color: #00000000;
-                    border: none;
-                    color: white;
-                    padding: 5px;
-                    margin: 2px;
-                }
-                QPushButton:hover {
-                    background-color: #00000000;
-                }
-            """)
+            if dark_mode == 1:
+                title_bar.setStyleSheet("""
+                    #title_bar {
+                        background-color: #2E2E2E;
+                        color: white;
+                        padding: 5px;
+                    }
+                    QPushButton {
+                        background-color: #00000000;
+                        border: none;
+                        color: white;
+                        padding: 5px;
+                        margin: 2px;
+                    }
+                    QPushButton:hover {
+                        background-color: #00000000;
+                    }
+                """)
+            else:
+                    title_bar.setStyleSheet("""
+                    #title_bar {
+                        background-color: #b3b3b3;
+                        color: white;
+                        padding: 5px;
+                    }
+                    QPushButton {
+                        background-color: #00ffea00;
+                        border: none;
+                        color: white;
+                        padding: 5px;
+                        margin: 2px;
+                    }
+                    QPushButton:hover {
+                        background-color: #00ffea00;
+                    }
+                """)
             title_bar_layout = QHBoxLayout()
 
             # Путь к иконкам
-            icon_path = os.path.join(sys.path[0], '..', 'icons')
+            if dark_mode == 1:
+                icon_path = os.path.join(sys.path[0], '..', 'icons', "dark")
+            else:
+                icon_path = os.path.join(sys.path[0], '..', 'icons', "light")
 
             # Кнопка "Назад" с изображением
             back_btn = QPushButton()
@@ -467,23 +671,42 @@ class Browser(QMainWindow):
                     # Создаем кастомную панель заголовка
             title_bar = QWidget()
             title_bar.setObjectName("title_bar")
-            title_bar.setStyleSheet("""
-                #title_bar {
-                    background-color: #2E2E2E;
-                    color: white;
-                    padding: 5px;
-                }
-                QPushButton {
-                    background-color: #4A4A4A;
-                    border: none;
-                    color: white;
-                    padding: 5px;
-                    margin: 2px;
-                }
-                QPushButton:hover {
-                    background-color: #6A6A6A;
-                }
-            """)
+            if dark_mode == 1:
+                title_bar.setStyleSheet("""
+                    #title_bar {
+                        background-color: #2E2E2E;
+                        color: white;
+                        padding: 5px;
+                    }
+                    QPushButton {
+                        background-color: #4A4A4A;
+                        border: none;
+                        color: white;
+                        padding: 5px;
+                        margin: 2px;
+                    }
+                    QPushButton:hover {
+                        background-color: #6A6A6A;
+                    }
+                """)
+            else:
+                    title_bar.setStyleSheet("""
+                    #title_bar {
+                        background-color: #b3b3b3;
+                        color: white;
+                        padding: 5px;
+                    }
+                    QPushButton {
+                        background-color: #ffffff;
+                        border: none;
+                        color: rgb(0, 0, 0);
+                        padding: 5px;
+                        margin: 2px;
+                    }
+                    QPushButton:hover {
+                        background-color: #e0e0e0;
+                    }
+                """)
             title_bar_layout = QHBoxLayout()
 
             # Кнопка "Назад"
@@ -606,96 +829,188 @@ class Browser(QMainWindow):
 
     def custom_error_page(self):
         if legacy_error_pages == 0:
-            return """
-            <!DOCTYPE html>
-            <html lang="ru">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Ошибка загрузки</title>
-                <style>
-                    body {
-                        margin: 0;
-                        padding: 0;
-                        background-color: #ff0000;
-                        color: #ffffff;
-                        font-family: Arial, sans-serif;
-                        display: flex;
-                        flex-direction: column;
-                        justify-content: space-between;
-                        height: 100vh;
-                        overflow: hidden;
-                    }
-
-                    .error-container {
-                        position: absolute;
-                        top: 5%;
-                        left: 5%;
-                        display: flex;
-                        align-items: center;
-                    }
-
-                    .triangle {
-                        position: relative;
-                        width: 0;
-                        height: 0;
-                        border-left: 50px solid transparent;
-                        border-right: 50px solid transparent;
-                        border-bottom: 100px solid #ffffff;
-                        animation: pulse 1.5s infinite;
-                    }
-
-                    .exclamation {
-                        position: absolute;
-                        top: 50%;
-                        left: 50%;
-                        transform: translate(-50%, 35%);
-                        font-size: 3.5rem;
-                        color: #ff0000;
-                        font-weight: bold;
-                    }
-
-                    .error-text {
-                        margin-left: 20px;
-                        font-size: 1.5rem;
-                        white-space: nowrap;
-                    }
-
-                    .footer {
-                        position: absolute;
-                        bottom: 10px;
-                        left: 10px;
-                        font-size: 0.9rem;
-                    }
-
-                    @keyframes pulse {
-                        0% {
-                            transform: scale(1);
+            if dark_mode == 1:
+                return """
+                <!DOCTYPE html>
+                <html lang="ru">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Ошибка загрузки</title>
+                    <style>
+                        body {
+                            margin: 0;
+                            padding: 0;
+                            background-color: #1C1C1C;
+                            color: #ffffff;
+                            font-family: Arial, sans-serif;
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: space-between;
+                            height: 100vh;
+                            overflow: hidden;
                         }
-                        50% {
-                            transform: scale(1.1);
+
+                        .error-container {
+                            position: absolute;
+                            top: 5%;
+                            left: 5%;
+                            display: flex;
+                            align-items: center;
                         }
-                        100% {
-                            transform: scale(1);
+
+                        .triangle {
+                            position: relative;
+                            width: 0;
+                            height: 0;
+                            border-left: 50px solid transparent;
+                            border-right: 50px solid transparent;
+                            border-bottom: 100px solid #ffffff;
+                            animation: pulse 1.5s infinite;
                         }
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="error-container">
-                    <div class="triangle">
-                        <div class="exclamation">!</div>
+
+                        .exclamation {
+                            position: absolute;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, 35%);
+                            font-size: 3.5rem;
+                            color: #1C1C1C;
+                            font-weight: bold;
+                        }
+
+                        .error-text {
+                            margin-left: 20px;
+                            font-size: 1.5rem;
+                            white-space: nowrap;
+                        }
+
+                        .footer {
+                            position: absolute;
+                            bottom: 10px;
+                            left: 10px;
+                            font-size: 0.9rem;
+                        }
+
+                        @keyframes pulse {
+                            0% {
+                                transform: scale(1);
+                            }
+                            50% {
+                                transform: scale(1.1);
+                            }
+                            100% {
+                                transform: scale(1);
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="error-container">
+                        <div class="triangle">
+                            <div class="exclamation">!</div>
+                        </div>
+                        <div class="error-text">
+                            <h1>Страница не найдена!</h1>
+                            <a>Страница или сайт не работает либо его не сущесвует</a>
+                        </div>
                     </div>
-                    <div class="error-text">
-                        <h1>Страница не найдена!</h1>
-                        <a>Страница или сайт не работает либо его не сущесвует</a>
-                    </div>
-                </div>
 
-                <div class="footer">WaterWolf Protect System</div>
-            </body>
-            </html>
-            """
+                    <div class="footer">WaterWolf Protect System</div>
+                </body>
+                </html>
+                """
+            else:
+                                return """
+                <!DOCTYPE html>
+                <html lang="ru">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Ошибка загрузки</title>
+                    <style>
+                        body {
+                            margin: 0;
+                            padding: 0;
+                            background-color: #ffffff;
+                            color: #1C1C1C;
+                            font-family: Arial, sans-serif;
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: space-between;
+                            height: 100vh;
+                            overflow: hidden;
+                        }
+
+                        .error-container {
+                            position: absolute;
+                            top: 5%;
+                            left: 5%;
+                            display: flex;
+                            align-items: center;
+                        }
+
+                        .triangle {
+                            position: relative;
+                            width: 0;
+                            height: 0;
+                            border-left: 50px solid transparent;
+                            border-right: 50px solid transparent;
+                            border-bottom: 100px solid #1C1C1C;
+                            animation: pulse 1.5s infinite;
+                        }
+
+                        .exclamation {
+                            position: absolute;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, 35%);
+                            font-size: 3.5rem;
+                            color: #ffffff;
+                            font-weight: bold;
+                        }
+
+                        .error-text {
+                            margin-left: 20px;
+                            font-size: 1.5rem;
+                            white-space: nowrap;
+                        }
+
+                        .footer {
+                            position: absolute;
+                            bottom: 10px;
+                            left: 10px;
+                            font-size: 0.9rem;
+                        }
+
+                        @keyframes pulse {
+                            0% {
+                                transform: scale(1);
+                            }
+                            50% {
+                                transform: scale(1.1);
+                            }
+                            100% {
+                                transform: scale(1);
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="error-container">
+                        <div class="triangle">
+                            <div class="exclamation">!</div>
+                        </div>
+                        <div class="error-text">
+                            <h1>Страница не найдена!</h1>
+                            <a>Страница или сайт не работает либо его не сущесвует</a>
+                        </div>
+                    </div>
+
+                    <div class="footer">WaterWolf Protect System</div>
+                </body>
+                </html>
+                """
         else:
             return """
             <html>
@@ -913,6 +1228,8 @@ class Browser(QMainWindow):
             event.accept()
 
 if __name__ == '__main__':
+    server_thread = threading.Thread(target=start_server, daemon=True)
+    server_thread.start()
     app = QApplication(sys.argv)
     browser = Browser()
     app.exec_()

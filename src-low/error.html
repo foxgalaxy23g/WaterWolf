@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ошибка загрузки</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #ff0000;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .error-container {
+            position: absolute;
+            top: 5%;
+            left: 5%;
+            display: flex;
+            align-items: center;
+        }
+
+        .triangle {
+            position: relative;
+            width: 0;
+            height: 0;
+            border-left: 50px solid transparent;
+            border-right: 50px solid transparent;
+            border-bottom: 100px solid #ffffff;
+            animation: pulse 1.5s infinite;
+        }
+
+        .exclamation {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, 35%);
+            font-size: 3.5rem;
+            color: #ff0000;
+            font-weight: bold;
+        }
+
+        .error-text {
+            margin-left: 20px;
+            font-size: 1.5rem;
+            white-space: nowrap;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            font-size: 0.9rem;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="triangle">
+            <div class="exclamation">!</div>
+        </div>
+        <div class="error-text">
+            <h1>Упс... Кажется у нас проблемки ._.</h1>
+            <a>Мы не можем загрузить данную страницу, пожалуйста попробуйте зайти позже</a>
+        </div>
+    </div>
+
+    <div class="footer">WaterWolf Protect System</div>
+</body>
+</html>

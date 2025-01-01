@@ -1,0 +1,53 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    background-image: url("bb.jpg");
+    overflow: hidden;
+}
+
+.launcher {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    max-width: 1000px;
+    width: 100%;
+}
+
+.app-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100px;
+    height: 100px;
+    cursor: pointer;
+    border-radius: 20px;
+    background-color: #ffffff00;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.app-icon:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0);
+}
+
+.app-icon img {
+    width: 60%;
+    height: 60%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.app-name {
+    margin-top: 10px;
+    font-size: 14px;
+    text-align: center;
+    color: #ffffff;
+    word-break: break-word;
+}
