@@ -2,6 +2,7 @@ import sys
 import os
 import threading
 import http.server
+import winreg
 import socketserver
 import configparser
 import requests
@@ -10,18 +11,40 @@ import random
 import zipfile
 import subprocess
 from PyQt5.QtCore import QUrl, Qt
-from PyQt5.QtWidgets import QApplication, QProgressBar, QInputDialog, QMainWindow, QHBoxLayout, QWidget, QLineEdit, QToolBar, QAction, QTabWidget, QMessageBox, QStyleOptionTab, QStyle, QTabBar, QPushButton
+from PyQt5.QtWidgets import QApplication, QProgressBar, QInputDialog, QMainWindow, QFileDialog, QHBoxLayout, QWidget, QLineEdit, QToolBar, QAction, QTabWidget, QMessageBox, QStyleOptionTab, QStyle, QTabBar, QPushButton
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtGui import QIcon, QPainter, QPalette, QColor, QPixmap
 from PyQt5 import QtCore
-from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineProfile
+from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineProfile, QWebEngineDownloadItem
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, CallbackContext
 import ctypes
 
+def get_windows_theme():
+    try:
+        # Открываем ключ реестра
+        key_path = r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path) as key:
+            # Читаем значение реестра AppsUseLightTheme
+            value, _ = winreg.QueryValueEx(key, "AppsUseLightTheme")
+            # Если значение 1 — светлая тема, если 0 — тёмная тема
+            return value  # Возвращаем числовое значение (0 или 1)
+    except FileNotFoundError:
+        # Если ключ или значение не найдено
+        return None
+
+light_mode = get_windows_theme()
+
+if light_mode == 0:  # Проверяем тёмную тему
+    print("Dark theme is active")
+elif light_mode == 1:  # Проверяем светлую тему
+    print("Light theme is active")
+else:
+    print("Theme is unknown")
+
+
 #Параметры
 safe_mode = 0 #Безопасный режим
-dark_mode = 1 #Тёмная тема
 anonymus = 0 #Режим инкогнито
 legacy_ui = 0 #Классический интерфейс
 legacy_error_pages = 0 #Классические ошибки
@@ -59,6 +82,23 @@ class CustomWebEnginePage(QWebEnginePage):
         self.profile = QWebEngineProfile.defaultProfile()
         self.profile.setHttpUserAgent(user_agent)
         self.loadFinished.connect(self.handle_load_finished)
+        self.profile.downloadRequested.connect(self.handle_download)
+
+    def handle_download(self, download: QWebEngineDownloadItem):
+        # Диалог выбора места сохранения
+        path, _ = QFileDialog.getSaveFileName(self.browser_window, "Сохранить файл как", download.path())
+        if path:
+            download.setPath(path)
+            download.accept()
+
+            # Опционально: добавьте прогресс-бар
+            progress_bar = QProgressBar(self.browser_window)
+            progress_bar.setMaximum(download.totalBytes())
+            progress_bar.setValue(0)
+            self.browser_window.layout().addWidget(progress_bar)
+
+            download.downloadProgress.connect(lambda received, total: progress_bar.setValue(received))
+            download.finished.connect(lambda: progress_bar.deleteLater())
 
     def createWindow(self, window_type):
         new_page = CustomWebEnginePage(self.browser_window)
@@ -87,7 +127,7 @@ class CustomWebEnginePage(QWebEnginePage):
 
     def custom_error_page(self):
         if legacy_error_pages == 0:
-            if dark_mode == 1:
+            if light_mode == 0:
                 return """
                 <!DOCTYPE html>
                 <html lang="ru">
@@ -178,7 +218,7 @@ class CustomWebEnginePage(QWebEnginePage):
                 </body>
                 </html>
                 """
-            else:
+            elif light_mode == 1:
                 return """
                 <!DOCTYPE html>
                 <html lang="ru">
@@ -304,7 +344,7 @@ class CustomWebEnginePage(QWebEnginePage):
 
     def custom_blocked_page(self):
         if legacy_error_pages == 0:
-            if dark_mode == 1:
+            if light_mode == 0:
                 return """
                 <!DOCTYPE html>
                 <html lang="ru">
@@ -394,7 +434,7 @@ class CustomWebEnginePage(QWebEnginePage):
                 </body>
                 </html>
                 """
-            else:
+            elif light_mode == 1:
                 return """
                 <!DOCTYPE html>
                 <html lang="ru">
@@ -520,7 +560,7 @@ class RoundedTabBar(QTabBar):
 
 class Browser(QMainWindow):
     GITHUB_REPO = "foxgalaxy23g/WaterWolf"  # Замените на ваше имя пользователя и репозиторий
-    CURRENT_VERSION = "1.3.5"  # Версия текущего браузера
+    CURRENT_VERSION = "1.3.6"  # Версия текущего браузера
 
     def __init__(self):
         super().__init__()
@@ -568,7 +608,7 @@ class Browser(QMainWindow):
             # Создаем кастомную панель заголовка
             title_bar = QWidget()
             title_bar.setObjectName("title_bar")
-            if dark_mode == 1:
+            if light_mode == 0:
                 title_bar.setStyleSheet("""
                     #title_bar {
                         background-color: #2E2E2E;
@@ -586,7 +626,7 @@ class Browser(QMainWindow):
                         background-color: #00000000;
                     }
                 """)
-            else:
+            elif light_mode == 1:
                     title_bar.setStyleSheet("""
                     #title_bar {
                         background-color: #b3b3b3;
@@ -607,9 +647,9 @@ class Browser(QMainWindow):
             title_bar_layout = QHBoxLayout()
 
             # Путь к иконкам
-            if dark_mode == 1:
+            if light_mode == 0:
                 icon_path = os.path.join(sys.path[0], '..', 'icons', "dark")
-            else:
+            elif light_mode == 1:
                 icon_path = os.path.join(sys.path[0], '..', 'icons', "light")
 
             # Кнопка "Назад" с изображением
@@ -671,7 +711,7 @@ class Browser(QMainWindow):
                     # Создаем кастомную панель заголовка
             title_bar = QWidget()
             title_bar.setObjectName("title_bar")
-            if dark_mode == 1:
+            if light_mode == 0:
                 title_bar.setStyleSheet("""
                     #title_bar {
                         background-color: #2E2E2E;
@@ -689,7 +729,7 @@ class Browser(QMainWindow):
                         background-color: #6A6A6A;
                     }
                 """)
-            else:
+            elif light_mode == 1:
                     title_bar.setStyleSheet("""
                     #title_bar {
                         background-color: #b3b3b3;
@@ -829,7 +869,7 @@ class Browser(QMainWindow):
 
     def custom_error_page(self):
         if legacy_error_pages == 0:
-            if dark_mode == 1:
+            if light_mode == 0:
                 return """
                 <!DOCTYPE html>
                 <html lang="ru">
@@ -920,7 +960,7 @@ class Browser(QMainWindow):
                 </body>
                 </html>
                 """
-            else:
+            elif light_mode == 1:
                                 return """
                 <!DOCTYPE html>
                 <html lang="ru">
