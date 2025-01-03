@@ -19,6 +19,8 @@ Installation:
 2. Run the installer with access administrator and follow the on-screen instructions.
 3. Launch WaterWolf via the desktop shortcut.
 
+WARNING : WATERWOLF WORK ONLY ON WINDOWS 10/11
+
 How to Build:
 -------------
 To compile the project into an EXE, run the `compile-cli.cmd` file.
