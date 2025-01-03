@@ -1,8 +1,11 @@
 @echo off
+
 color 2
-
+echo "If you do not have a folder named ready then please press Enter."
+rmdir "%~dp0ready"
+cls
 pip install -r "%~dp0requirements.txt"
-
+mkdir "%~dp0ready"
 cls
 
 color 3
